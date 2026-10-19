@@ -1,0 +1,3327 @@
+
+<!DOCTYPE html>
+<html lang="fi" data-theme="midnight">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>File Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root, [data-theme="midnight"] {
+      --bg: #090d16;
+      --surface: #111827;
+      --surface-hover: #1f293d;
+      --surface-glass: rgba(17, 24, 39, 0.94);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-focus: rgba(99, 102, 241, 0.6);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --card-bg: #111827;
+    }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --surface-hover: #1a1a1a;
+      --surface-glass: rgba(10, 10, 10, 0.96);
+      --border: rgba(255, 255, 255, 0.18);
+      --border-focus: #ffffff;
+      --primary: #ffffff;
+      --primary-hover: #e5e5e5;
+      --primary-glow: rgba(255, 255, 255, 0.25);
+      --text: #ffffff;
+      --text-muted: #888888;
+      --danger: #ff4d4f;
+      --success: #52c41a;
+      --warning: #faad14;
+      --card-bg: #0d0d0d;
+    }
+
+    [data-theme="cyberpunk"] {
+      --bg: #0d0221;
+      --surface: #19053b;
+      --surface-hover: #2b0b63;
+      --surface-glass: rgba(25, 5, 59, 0.95);
+      --border: rgba(255, 0, 128, 0.3);
+      --border-focus: #00f0ff;
+      --primary: #ff007f;
+      --primary-hover: #e00070;
+      --primary-glow: rgba(255, 0, 127, 0.4);
+      --text: #ffffff;
+      --text-muted: #a78bfa;
+      --danger: #ff0055;
+      --success: #00f0ff;
+      --warning: #ffe600;
+      --card-bg: #150333;
+    }
+
+    [data-theme="forest"] {
+      --bg: #06140e;
+      --surface: #0d231a;
+      --surface-hover: #173d2e;
+      --surface-glass: rgba(13, 35, 26, 0.95);
+      --border: rgba(52, 211, 153, 0.2);
+      --border-focus: #10b981;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --text: #ecfdf5;
+      --text-muted: #6ee7b7;
+      --danger: #f87171;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --card-bg: #0a1f16;
+    }
+
+    [data-theme="nordic-light"] {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-hover: #e5e7eb;
+      --surface-glass: rgba(255, 255, 255, 0.96);
+      --border: rgba(0, 0, 0, 0.12);
+      --border-focus: #2563eb;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-glow: rgba(37, 99, 235, 0.25);
+      --text: #111827;
+      --text-muted: #6b7280;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+      max-width: 18px;
+      max-height: 18px;
+      flex-shrink: 0;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: all 0.2s;
+      white-space: nowrap;
+      height: 40px;
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--surface-hover);
+    }
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 10px var(--primary-glow);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: transparent;
+    }
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .btn.active {
+      background: var(--surface-hover);
+      border-color: var(--primary);
+    }
+
+    .select-dropdown {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      height: 40px;
+    }
+
+    .topbar {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      z-index: 50;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-row {
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .search-bar-full {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-bar-full svg {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .search-input-full {
+      width: 100%;
+      height: 44px;
+      padding: 0 40px 0 44px;
+      border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input-full:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: none;
+    }
+
+    .top-panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .top-panel-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .top-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      max-height: 90vh;
+      background: var(--surface-glass);
+      backdrop-filter: blur(25px);
+      border-bottom: 1px solid var(--border);
+      z-index: 90;
+      transform: translateY(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      overflow-y: auto;
+      padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 16px));
+    }
+    .top-panel.open {
+      transform: translateY(0);
+    }
+
+    .top-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .drawer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .drawer-column-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .nav-item:hover, .nav-item.active {
+      color: var(--text);
+      background: var(--surface-hover);
+    }
+    .nav-item.active {
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--danger);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      background: var(--surface);
+    }
+    .tag-chip.active {
+      border-color: var(--text);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .toolbar {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      background: var(--bg);
+    }
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .breadcrumb-item {
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .breadcrumb-item:hover, .breadcrumb-item.active {
+      color: var(--text);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      padding-bottom: calc(140px + env(safe-area-inset-bottom, 24px));
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      background: var(--surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.2s;
+    }
+    .filter-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .file-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+      min-height: 165px;
+      justify-content: space-between;
+    }
+    .file-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-focus);
+    }
+    .file-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+    }
+    .file-card.cut-item {
+      opacity: 0.4;
+      border-style: dashed;
+    }
+    .file-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .file-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .file-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+    }
+    .file-card.selected .file-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .file-card.selected .file-checkbox svg {
+      display: block;
+      color: #fff;
+    }
+    .file-checkbox svg {
+      display: none;
+      width: 14px;
+      height: 14px;
+    }
+    .file-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+    .file-subtext {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+    .file-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .file-tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .file-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      gap: 12px;
+      min-height: 50px;
+    }
+    .file-row.selected {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+    }
+    .file-row-name {
+      flex: 2;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      min-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-row-meta {
+      flex: 1;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .batch-bar {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 20px));
+      left: 50%;
+      transform: translateX(-50%) translateY(150px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(25px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 70;
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+    .batch-bar.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+    .batch-count {
+      font-weight: 700;
+      color: var(--text);
+      padding-right: 8px;
+      border-right: 1px solid var(--border);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .tree-view {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .tree-node {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+    .tree-node:hover {
+      background: var(--surface-hover);
+    }
+    .tree-node.active {
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .tree-count {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 16px;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .rename-mode-pills {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .rename-mode-pill {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: 0.2s;
+    }
+    .rename-mode-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .preview-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .preview-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+      color: var(--text-muted);
+    }
+    .preview-item-new {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .shortcut-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .shortcut-table tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .shortcut-table td {
+      padding: 8px 4px;
+    }
+    kbd {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      font-size: 0.78rem;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 250;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .loading-subtext {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--surface);
+      border-left: 4px solid var(--primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: var(--text);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      animation: slideIn 0.25s forwards;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    @media (max-width: 768px) {
+      .file-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .file-row-meta:nth-child(3), .file-row-meta:nth-child(4) {
+        display: none;
+      }
+      .btn-label-desktop {
+        display: none;
+      }
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-title" id="loadingTitle">Ladataan kansiota...</div>
+    <div class="loading-subtext" id="loadingSubtext">0 tiedostoa luettu</div>
+  </div>
+
+  <!-- Top Drawer -->
+  <div class="top-panel-overlay" id="topPanelOverlay" onclick="closeTopDrawer()"></div>
+  <aside class="top-panel" id="topPanel">
+    <div class="top-panel-header">
+      <div class="brand-title">
+        <span data-i18n="topDrawerHeader">⚡ File Manager – Administration Panel</span>
+      </div>
+      <button class="btn btn-icon" onclick="closeTopDrawer()">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-grid">
+      <div>
+        <div class="drawer-column-title" data-i18n="drawerLocations">Sijainnit</div>
+        <div class="nav-item active" id="navAll" onclick="setSpecialView('all')">
+          <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span data-i18n="navAllFiles">Kaikki tiedostot</span>
+        </div>
+        <div class="nav-item" id="navTrash" onclick="setSpecialView('trash')">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          <span data-i18n="navTrash">Roskakori</span>
+          <span class="nav-badge" id="trashBadge" style="display:none;">0</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-column-title" data-i18n="drawerImport">Oikeiden kansioiden tuonti</div>
+        <button class="btn btn-primary" style="width: 100%; margin-bottom: 8px; justify-content: flex-start;" onclick="openNativeDirectory()">
+          <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+          <span data-i18n="btnOpenDeviceFolder">Avaa laitteen kansio (Kirjoitusoikeus)</span>
+        </button>
+        <label class="btn" style="width: 100%; margin-bottom: 8px; justify-content: flex-start; cursor: pointer;">
+          <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M12 11v6m-3-3h6"/></svg>
+          <span data-i18n="btnImportFolder">Tuo kokonainen kansio...</span>
+          <input type="file" id="realFolderInput" webkitdirectory directory multiple onchange="handleRealFolderImport(event)" style="display:none;">
+        </label>
+        <label class="btn" style="width: 100%; justify-content: flex-start; cursor: pointer;">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span data-i18n="btnImportFiles">Tuo yksittäisiä tiedostoja...</span>
+          <input type="file" id="realFileInput" multiple onchange="handleRealFilesImport(event)" style="display:none;">
+        </label>
+      </div>
+
+      <div>
+        <div class="drawer-column-title" data-i18n="drawerSettingsSystem">Asetukset & Järjestelmä</div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;" data-i18n="lblLanguage">Sovelluksen kieli</label>
+          <select id="langSelector" class="select-dropdown" style="width: 100%;" onchange="changeLanguage(this.value)">
+            <option value="fi">🇫🇮 Suomi</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-danger" style="width: 100%; justify-content: flex-start; margin-bottom: 4px;" onclick="clearAppMemory()">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <span data-i18n="btnClearMemory">Tyhjennä sovelluksen muisti</span>
+          </button>
+          <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.3;" data-i18n="descClearMemory">
+            Nollaa selaimen välimuistin ja sovelluksen luettelot. Ei vaikuta laitteesi oikeisiin tiedostoihin.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-column-title" data-i18n="drawerBackup">Varmuuskopiointi (.js)</div>
+        <button class="btn" style="width: 100%; margin-bottom: 8px; justify-content: flex-start;" onclick="exportSettingsAsJs()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span data-i18n="btnExportJs">Tallenna asetukset (.js)</span>
+        </button>
+        <label class="btn" style="width: 100%; justify-content: flex-start; cursor: pointer;">
+          <svg viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9m-4-4 4 4 4-4"/></svg>
+          <span data-i18n="btnImportJs">Lataa asetukset (.js)</span>
+          <input type="file" accept=".js" onchange="importSettingsFromJs(event)" style="display:none;">
+        </label>
+      </div>
+
+      <div>
+        <div class="drawer-column-title" style="display:flex; justify-content:space-between;">
+          <span data-i18n="drawerTags">Tägit</span>
+          <span style="cursor:pointer; color:var(--primary);" onclick="promptNewTag()" data-i18n="btnNewTag">+ Uusi tägi</span>
+        </div>
+        <div class="tag-cloud" id="tagCloud"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <button class="btn btn-icon" onclick="toggleTopDrawer()" title="Avaa valikko ylhäältä">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <div class="brand-title">
+      <span>File Manager</span>
+    </div>
+
+    <div style="display:flex; gap:4px; margin-left:auto;">
+      <button class="btn btn-icon" id="undoBtn" onclick="undo()" title="Kumoa (Ctrl+Z)" disabled>
+        <svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button class="btn btn-icon" id="redoBtn" onclick="redo()" title="Tee uudelleen (Ctrl+Y)" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+    </div>
+
+    <button class="btn" onclick="openHierarchyModal()" title="Kansiohierarkiapuu">
+      <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      <span class="btn-label-desktop" data-i18n="btnFolderTree">🌳 Kansiopuu</span>
+    </button>
+
+    <button class="btn" onclick="openModal('shortcutsModal')" title="Näytä pikanäppäimet">
+      <svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="6" y1="10" x2="6.01" y2="10"/><line x1="10" y1="10" x2="10.01" y2="10"/><line x1="14" y1="10" x2="14.01" y2="10"/><line x1="18" y1="10" x2="18.01" y2="10"/><line x1="7" y1="14" x2="17" y2="14"/></svg>
+      <span class="btn-label-desktop" data-i18n="btnShortcuts">⌨️ Pikanäppäimet</span>
+    </button>
+
+    <select id="themeSelector" class="select-dropdown" onchange="changeTheme(this.value)">
+      <option value="midnight">🌌 Midnight</option>
+      <option value="oled">🖤 OLED Musta</option>
+      <option value="cyberpunk">🌆 Cyberpunk</option>
+      <option value="forest">🌲 Smaragdinvihreä</option>
+      <option value="nordic-light">❄️ Pohjolan valo</option>
+    </select>
+
+    <button class="btn btn-primary" onclick="openNewFolderModal()">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
+      <span class="btn-label-desktop" data-i18n="btnNewFolder">Uusi kansio</span>
+    </button>
+  </header>
+
+  <div class="search-row">
+    <div class="search-bar-full">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" class="search-input-full" placeholder="Hae nimellä, tägillä, esittäjällä, albumilla tai tekijällä..." oninput="handleSearch(this.value)">
+      <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()">✕</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="breadcrumbs" id="breadcrumbs"></div>
+
+    <div class="toolbar-actions">
+      <button class="btn btn-danger" id="emptyTrashBtn" onclick="emptyTrash()" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        <span data-i18n="btnEmptyTrash">Tyhjennä roskakori</span>
+      </button>
+
+      <select id="sortSelect" class="select-dropdown" onchange="handleSortChange(this.value)">
+        <option value="name_asc" data-i18n="sortNameAsc">Nimi (A - Z)</option>
+        <option value="name_desc" data-i18n="sortNameDesc">Nimi (Z - A)</option>
+        <option value="date_desc" data-i18n="sortDateDesc">Uusin ensin</option>
+        <option value="date_asc" data-i18n="sortDateAsc">Vanhin ensin</option>
+        <option value="size_desc" data-i18n="sortSizeDesc">Koko (Suurin)</option>
+      </select>
+
+      <button class="btn btn-icon" id="viewGridBtn" onclick="setViewMode('grid')" title="Ruudukko">
+        <svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+      </button>
+      <button class="btn btn-icon" id="viewListBtn" onclick="setViewMode('list')" title="Lista">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="content-area" id="contentArea">
+    <div class="filter-pills" id="filterPillsRow">
+      <div class="filter-pill active" onclick="setTypeFilter('all', this)" data-i18n="filterAll">Kaikki</div>
+      <div class="filter-pill" onclick="setTypeFilter('folder', this)" data-i18n="filterFolders">📁 Kansiot</div>
+      <div class="filter-pill" onclick="setTypeFilter('audio', this)" data-i18n="filterAudio">🎵 Äänet</div>
+      <div class="filter-pill" onclick="setTypeFilter('image', this)" data-i18n="filterImages">🖼️ Kuvat</div>
+      <div class="filter-pill" onclick="setTypeFilter('document', this)" data-i18n="filterDocuments">📄 Asiakirjat</div>
+      <div class="filter-pill" onclick="setTypeFilter('code', this)" data-i18n="filterCode">💻 Koodit</div>
+    </div>
+
+    <div id="fileContainer" class="file-grid"></div>
+  </main>
+
+  <div class="batch-bar" id="batchBar">
+    <div class="batch-count" id="batchCount">0 valittu</div>
+    
+    <div id="normalBatchButtons" style="display:flex; gap:6px;">
+      <button class="btn btn-primary" onclick="openBatchRenameModal()" title="Nimeä uudelleen (F2)">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnBatchRename">Nimeä uudelleen</span>
+      </button>
+
+      <button class="btn" onclick="moveToNewFolderPrompt()" title="Siirrä uuteen kansioon (Ctrl+M)">
+        <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnToNewFolder">Uuteen kansioon</span>
+      </button>
+      <button class="btn" onclick="copySelected(false)" title="Kopioi (Ctrl+C)">
+        <svg viewBox="0 0 24 24"><rect width="13" height="13" x="9" y="9" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnCopy">Kopioi</span>
+      </button>
+      <button class="btn" onclick="copySelected(true)" title="Leikkaa / Siirrä (Ctrl+X)">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnCut">Siirrä</span>
+      </button>
+      <button class="btn" onclick="openBatchTagModal()" title="Tägää (Ctrl+T)">
+        <svg viewBox="0 0 24 24"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnTag">Tägää</span>
+      </button>
+      <button class="btn" onclick="trashSelected()" style="color:var(--danger);" title="Siirrä roskakoriin (Delete)">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        <span class="btn-label-desktop" data-i18n="btnTrash">Roskakoriin</span>
+      </button>
+    </div>
+
+    <div id="trashBatchButtons" style="display:none; gap:6px;">
+      <button class="btn btn-primary" onclick="restoreSelected()" data-i18n="btnRestore">Palauta</button>
+      <button class="btn btn-danger" onclick="deletePermanentlySelected()" data-i18n="btnDeletePerm">Poista pysyvästi</button>
+    </div>
+
+    <button class="btn btn-icon" onclick="clearSelection()" title="Peruuta valinta (Esc)">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ==========================================================
+     MODAALIT
+========================================================== -->
+<!-- Pikanäppäinopas -->
+<div class="modal-overlay" id="shortcutsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span>⌨️</span> <span data-i18n="shortcutsTitle">Pikanäppäimet</span>
+      </h3>
+      <button class="btn btn-icon" onclick="closeModal('shortcutsModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <table class="shortcut-table">
+      <tbody>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>I</kbd> tai <kbd>Alt</kbd> + <kbd>Enter</kbd></td><td>Muokkaa valitun tietoja & ID3-metadataa</td></tr>
+        <tr><td><kbd>F2</kbd></td><td>Nimeä kohde tai avaa joukkonimeäminen</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>T</kbd></td><td>Aseta tägi valituille kohteille</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>M</kbd></td><td>Siirrä valitut uuteen kansioon</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd></td><td>Luo uusi kansio</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>Ctrl</kbd> + <kbd>X</kbd></td><td>Kopioi / Leikkaa valitut kohteet</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>V</kbd></td><td>Liitä leikatut tai kopioidut kohteet</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>A</kbd></td><td>Valitse kaikki nykyisen kansion kohteet</td></tr>
+        <tr><td><kbd>Delete</kbd> tai <kbd>Backspace</kbd></td><td>Siirrä valitut roskakoriin</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>Kohdista hakukenttään</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd></td><td>Kumoa / Tee uudelleen</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Tyhjennä valinnat tai sulje ikkuna</td></tr>
+      </tbody>
+    </table>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="closeModal('shortcutsModal')" data-i18n="btnClose">Selvä</button>
+    </div>
+  </div>
+</div>
+
+<!-- Joukkonimeäminen -->
+<div class="modal-overlay" id="batchRenameModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span>✏️</span> <span data-i18n="batchRenameTitle">Muokkaa valittujen nimiä</span>
+      </h3>
+      <button class="btn btn-icon" onclick="closeModal('batchRenameModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="rename-mode-pills">
+      <div class="rename-mode-pill active" id="modePillPrefix" onclick="setRenameMode('prefix')" data-i18n="modePrefix">Lisää alkuun</div>
+      <div class="rename-mode-pill" id="modePillSuffix" onclick="setRenameMode('suffix')" data-i18n="modeSuffix">Lisää loppuun</div>
+      <div class="rename-mode-pill" id="modePillReplace" onclick="setRenameMode('replace')" data-i18n="modeReplace">Etsi ja korvaa</div>
+    </div>
+
+    <div id="renamePrefixSection" class="form-group">
+      <label class="form-label" data-i18n="lblAddPrefix">Lisättävä etuliite (alkuun):</label>
+      <input type="text" id="renamePrefixInput" class="form-input" placeholder="esim. 2026_" oninput="updateRenamePreview()">
+    </div>
+
+    <div id="renameSuffixSection" class="form-group" style="display:none;">
+      <label class="form-label" data-i18n="lblAddSuffix">Lisättävä jälkiliite (loppuun):</label>
+      <input type="text" id="renameSuffixInput" class="form-input" placeholder="esim. _valmis" oninput="updateRenamePreview()">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; margin-top: 8px; cursor: pointer; color: var(--text-muted);">
+        <input type="checkbox" id="renameBeforeExtCheck" checked onchange="updateRenamePreview()">
+        <span data-i18n="lblBeforeExtension">Lisää ennen tiedostopäätettä (esim. .mp3, .jpg)</span>
+      </label>
+    </div>
+
+    <div id="renameReplaceSection" style="display:none;">
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFindString">Etsittävä teksti:</label>
+        <input type="text" id="renameFindInput" class="form-input" placeholder="Etsittävä merkkijono" oninput="updateRenamePreview()">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblReplaceWith">Korvaava teksti:</label>
+        <input type="text" id="renameReplaceInput" class="form-input" placeholder="Korvaava merkkijono" oninput="updateRenamePreview()">
+      </div>
+    </div>
+
+    <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-top:12px;" data-i18n="lblPreview">Esikatselu:</div>
+    <div class="preview-box" id="renamePreviewBox"></div>
+
+    <div class="form-actions">
+      <button type="button" class="btn" onclick="closeModal('batchRenameModal')" data-i18n="btnCancel">Peruuta</button>
+      <button type="button" class="btn btn-primary" onclick="applyBatchRename()" data-i18n="btnApply">Käytä muutokset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kansiohierarkia Modal -->
+<div class="modal-overlay" id="hierarchyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <span>🌳</span> <span data-i18n="modalHierarchyTitle">Kansiohierarkia</span>
+      </h3>
+      <button class="btn btn-icon" onclick="closeModal('hierarchyModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px;" data-i18n="modalHierarchyDesc">Klikkaa kansiota siirtyäksesi suoraan sinne:</p>
+    <div class="tree-view" id="treeViewContainer"></div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="closeModal('hierarchyModal')" data-i18n="btnClose">Sulje</button>
+    </div>
+  </div>
+</div>
+
+<!-- Metatietojen & Äänitietojen Muokkain -->
+<div class="modal-overlay" id="metaModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="metaModalHeaderTitle" data-i18n="metaModalTitle">Tiedot & Tägit</h3>
+      <button class="btn btn-icon" onclick="closeModal('metaModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form onsubmit="saveMetadata(event)">
+      <input type="hidden" id="metaFileId">
+      
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFileName">Tiedoston nimi</label>
+        <input type="text" id="metaName" class="form-input" required>
+      </div>
+
+      <!-- ID3-METATIETOJEN OSASTO -->
+      <div id="audioMetaSection" style="display:none; margin: 14px 0; padding: 12px; background: rgba(99, 102, 241, 0.08); border-radius: 10px; border: 1px solid var(--border-focus);">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+          <span data-i18n="audioSectionTitle">🎵 ÄÄNITIEDOSTON METATIEDOT (ID3)</span>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioArtist">Esittäjä / Artisti</label>
+            <input type="text" id="audioArtist" class="form-input" placeholder="esim. Daft Punk">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioTitle">Kappaleen otsikko</label>
+            <input type="text" id="audioTitle" class="form-input" placeholder="esim. Get Lucky">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioAlbum">Albumi</label>
+            <input type="text" id="audioAlbum" class="form-input" placeholder="esim. Random Access Memories">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioYear">Julkaisuvuosi</label>
+            <input type="text" id="audioYear" class="form-input" placeholder="esim. 2013">
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioGenre">Genre</label>
+            <input type="text" id="audioGenre" class="form-input" placeholder="esim. Electronic, Disco">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblAudioTrack">Raitanumero</label>
+            <input type="text" id="audioTrack" class="form-input" placeholder="esim. 03">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="lblAudioComposer">Säveltäjä</label>
+          <input type="text" id="audioComposer" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFileAuthor">Tekijä / Omistaja</label>
+        <input type="text" id="metaAuthor" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFileDescription">Kuvaus</label>
+        <input type="text" id="metaDescription" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFileTags">Tägit (pilkulla erotettuna)</label>
+        <input type="text" id="metaTags" class="form-input" placeholder="esim. Työ, Musiikki, Suosikit">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" onclick="openCurrentFileInApp()" style="color:var(--primary); border-color:var(--primary-glow);">
+          <span>▶️</span> <span data-i18n="btnOpenInApp">Avaa soittimessa / sovelluksessa</span>
+        </button>
+        <button type="button" class="btn" onclick="downloadFile()" id="downloadBtn" data-i18n="btnDownload">Lataa laitteelle</button>
+        <button type="submit" class="btn btn-primary" data-i18n="btnSave">Tallenna oikeaan tiedostoon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: New Folder -->
+<div class="modal-overlay" id="newFolderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" data-i18n="newFolderModalTitle">Luo uusi kansio</h3>
+      <button class="btn btn-icon" onclick="closeModal('newFolderModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form onsubmit="createNewFolder(event)">
+      <div class="form-group">
+        <label class="form-label" data-i18n="lblFolderName">Kansion nimi</label>
+        <input type="text" id="newFolderName" class="form-input" placeholder="Uusi kansio" required autofocus>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn" onclick="closeModal('newFolderModal')" data-i18n="btnCancel">Peruuta</button>
+        <button type="submit" class="btn btn-primary" data-i18n="btnCreate">Luo kansio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Batch Tagging -->
+<div class="modal-overlay" id="batchTagModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" data-i18n="batchTagModalTitle">Lisää tägi valituille</h3>
+      <button class="btn btn-icon" onclick="closeModal('batchTagModal')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="lblTagName">Tägin nimi</label>
+      <input type="text" id="batchTagInput" class="form-input" placeholder="esim. Tärkeä" autofocus>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn" onclick="closeModal('batchTagModal')" data-i18n="btnCancel">Peruuta</button>
+      <button type="button" class="btn btn-primary" onclick="applyBatchTag()" data-i18n="btnSetTag">Aseta tägi</button>
+    </div>
+  </div>
+</div>
+
+<!-- KUVIEN ESITARKASTELU (LIGHTBOX) -->
+<div class="modal-overlay" id="imageViewerModal" onclick="closeModal('imageViewerModal')">
+  <div class="modal" style="max-width: 90vw; max-height: 90vh; padding: 14px; text-align: center;" onclick="event.stopPropagation()">
+    <div class="modal-header" style="margin-bottom: 10px;">
+      <h3 class="modal-title" id="imageViewerTitle" style="font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kuva</h3>
+      <button class="btn btn-icon" onclick="closeModal('imageViewerModal')">✕</button>
+    </div>
+    <div style="display:flex; justify-content:center; align-items:center; max-height:75vh; overflow:hidden;">
+      <img id="imageViewerImg" src="" alt="Kuva" style="max-width: 100%; max-height: 72vh; border-radius: 8px; object-fit: contain; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+    </div>
+  </div>
+</div>
+
+<!-- SISÄÄNRAKENNETTU TEKSTIEDITORI -->
+<div class="modal-overlay" id="textEditorModal">
+  <div class="modal" style="max-width: 650px; width: 95vw;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="textEditorTitle" style="font-size: 1rem;">Tekstitiedosto</h3>
+      <button class="btn btn-icon" onclick="closeModal('textEditorModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <textarea id="textEditorArea" class="form-input" style="height: 55vh; font-family: monospace; font-size: 0.88rem; line-height: 1.4; resize: vertical; white-space: pre;"></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn" onclick="closeModal('textEditorModal')" data-i18n="btnCancel">Sulje</button>
+      <button type="button" class="btn btn-primary" onclick="saveTextEditorContent()" data-i18n="btnSave">Tallenna muutokset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kelluva Tyylikäs Mini-Soitin -->
+<div id="audioMiniPlayer" style="display:none; position:fixed; bottom:calc(85px + env(safe-area-inset-bottom, 20px)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:480px; background:var(--surface); border:1px solid var(--border-focus); box-shadow:0 15px 35px rgba(0,0,0,0.6); backdrop-filter:blur(25px); border-radius:14px; padding:12px 16px; z-index:120; align-items:center; gap:12px;">
+  <div style="font-size:1.8rem; line-height:1;">🎵</div>
+  <div style="flex:1; min-width:0;">
+    <div id="miniPlayerTitle" style="font-weight:700; font-size:0.88rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Kappale</div>
+    <div id="miniPlayerArtist" style="font-size:0.75rem; color:var(--primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Artisti</div>
+    <audio id="miniAudioElement" controls style="width:100%; height:32px; margin-top:6px; outline:none;"></audio>
+  </div>
+  <button class="btn btn-icon" onclick="closeMiniPlayer()" style="width:30px; height:30px; border-radius:50%;" title="Sulje soitin">✕</button>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  let currentLang = 'fi';
+
+  const translations = {
+    fi: {
+      topDrawerHeader: "⚡ File Manager – Administration Panel",
+      drawerLocations: "Sijainnit",
+      navAllFiles: "Kaikki tiedostot",
+      navTrash: "Roskakori",
+      drawerImport: "Oikeiden kansioiden tuonti",
+      btnOpenDeviceFolder: "Avaa laitteen kansio (Kirjoitusoikeus)",
+      btnImportFolder: "Tuo kokonainen kansio...",
+      btnImportFiles: "Tuo yksittäisiä tiedostoja...",
+      drawerSettingsSystem: "Asetukset & Järjestelmä",
+      lblLanguage: "Sovelluksen kieli",
+      btnClearMemory: "Tyhjennä sovelluksen muisti",
+      descClearMemory: "Nollaa selaimen välimuistin ja sovelluksen luettelot. Ei vaikuta laitteesi oikeisiin tiedostoihin.",
+      drawerBackup: "Varmuuskopiointi (.js)",
+      btnExportJs: "Tallenna asetukset (.js)",
+      btnImportJs: "Lataa asetukset (.js)",
+      drawerTags: "Tägit",
+      btnNewTag: "+ Uusi tägi",
+      btnFolderTree: "🌳 Kansiopuu",
+      btnShortcuts: "⌨️ Pikanäppäimet",
+      btnNewFolder: "Uusi kansio",
+      searchPlaceholder: "Hae nimellä, tägillä, esittäjällä, albumilla tai tekijällä...",
+      btnEmptyTrash: "Tyhjennä roskakori",
+      sortNameAsc: "Nimi (A - Z)",
+      sortNameDesc: "Nimi (Z - A)",
+      sortDateDesc: "Uusin ensin",
+      sortDateAsc: "Vanhin ensin",
+      sortSizeDesc: "Koko (Suurin)",
+      filterAll: "Kaikki",
+      filterFolders: "📁 Kansiot",
+      filterAudio: "🎵 Äänet",
+      filterImages: "🖼️ Kuvat",
+      filterDocuments: "📄 Asiakirjat",
+      filterCode: "💻 Koodit",
+      btnBatchRename: "Nimeä uudelleen",
+      btnToNewFolder: "Uuteen kansioon",
+      btnCopy: "Kopioi",
+      btnCut: "Siirrä",
+      btnTag: "Tägää",
+      btnTrash: "Roskakoriin",
+      btnRestore: "Palauta",
+      btnDeletePerm: "Poista pysyvästi",
+      batchRenameTitle: "Muokkaa valittujen nimiä",
+      modePrefix: "Lisää alkuun",
+      modeSuffix: "Lisää loppuun",
+      modeReplace: "Etsi ja korvaa",
+      lblAddPrefix: "Lisättävä etuliite (alkuun):",
+      lblAddSuffix: "Lisättävä jälkiliite (loppuun):",
+      lblBeforeExtension: "Lisää ennen tiedostopäätettä (esim. .mp3, .jpg)",
+      lblFindString: "Etsittävä teksti:",
+      lblReplaceWith: "Korvaava teksti:",
+      lblPreview: "Esikatselu:",
+      btnCancel: "Peruuta",
+      btnApply: "Käytä muutokset",
+      modalHierarchyTitle: "Kansiohierarkia",
+      modalHierarchyDesc: "Klikkaa kansiota siirtyäksesi suoraan sinne:",
+      btnClose: "Sulje",
+      metaModalTitle: "Tiedot & Tägit",
+      audioSectionTitle: "🎵 ÄÄNITIEDOSTON METATIEDOT (ID3)",
+      lblFileName: "Tiedoston nimi",
+      lblAudioArtist: "Esittäjä / Artisti",
+      lblAudioTitle: "Kappaleen otsikko",
+      lblAudioAlbum: "Albumi",
+      lblAudioYear: "Julkaisuvuosi",
+      lblAudioGenre: "Genre",
+      lblAudioTrack: "Raitanumero",
+      lblAudioComposer: "Säveltäjä",
+      lblFileAuthor: "Tekijä / Omistaja",
+      lblFileDescription: "Kuvaus",
+      lblFileTags: "Tägit (pilkulla erotettuna)",
+      btnDownload: "Lataa laitteelle",
+      btnSave: "Tallenna oikeaan tiedostoon",
+      newFolderModalTitle: "Luo uusi kansio",
+      lblFolderName: "Kansion nimi",
+      btnCreate: "Luo kansio",
+      batchTagModalTitle: "Lisää tägi valituille",
+      lblTagName: "Tägin nimi",
+      btnSetTag: "Aseta tägi",
+      emptyTrashTitle: "Roskakori on tyhjä",
+      emptyFolderTitle: "Tässä kansiossa ei ole tiedostoja",
+      emptyFolderDesc: "Voit luoda uuden kansion tai avata valikon ja tuoda tiedostoja tai kokonaisen kansion.",
+      rootHome: "Koti",
+      itemsLabel: "kohdetta",
+      confirmClearMemory: "Haluatko varmasti tyhjentää sovelluksen muistin? Tämä nollaa sovelluksen tilan. Tämä EI poista eikä muuta laitteesi oikeita tiedostoja.",
+      memoryClearedToast: "Sovelluksen muisti tyhjennetty puhtaaksi!",
+      renameToast: "tiedoston nimeä muutettu!",
+      shortcutsTitle: "Pikanäppäimet (Tietokone)",
+      btnOpenInApp: "Avaa soittimessa / sovelluksessa"
+    },
+    en: {
+      topDrawerHeader: "⚡ File Manager – Administration Panel",
+      drawerLocations: "Locations",
+      navAllFiles: "All Files",
+      navTrash: "Trash",
+      drawerImport: "Import Real Folders",
+      btnOpenDeviceFolder: "Open Device Folder (Write Access)",
+      btnImportFolder: "Import Full Folder...",
+      btnImportFiles: "Import Individual Files...",
+      drawerSettingsSystem: "Settings & System",
+      lblLanguage: "App Language",
+      btnClearMemory: "Clear App Memory",
+      descClearMemory: "Clears browser cache and file listings. Does not affect real files on your device.",
+      drawerBackup: "Backup (.js)",
+      btnExportJs: "Save Settings (.js)",
+      btnImportJs: "Load Settings (.js)",
+      drawerTags: "Tags",
+      btnNewTag: "+ New Tag",
+      btnFolderTree: "🌳 Folder Tree",
+      btnShortcuts: "⌨️ Shortcuts",
+      btnNewFolder: "New Folder",
+      searchPlaceholder: "Search by name, tag, artist, album, author...",
+      btnEmptyTrash: "Empty Trash",
+      sortNameAsc: "Name (A - Z)",
+      sortNameDesc: "Name (Z - A)",
+      sortDateDesc: "Newest first",
+      sortDateAsc: "Oldest first",
+      sortSizeDesc: "Size (Largest)",
+      filterAll: "All",
+      filterFolders: "📁 Folders",
+      filterAudio: "🎵 Audio",
+      filterImages: "🖼️ Images",
+      filterDocuments: "📄 Documents",
+      filterCode: "💻 Code",
+      btnBatchRename: "Batch Rename",
+      btnToNewFolder: "To New Folder",
+      btnCopy: "Copy",
+      btnCut: "Move",
+      btnTag: "Tag",
+      btnTrash: "To Trash",
+      btnRestore: "Restore",
+      btnDeletePerm: "Delete Permanently",
+      batchRenameTitle: "Batch Rename Selected",
+      modePrefix: "Add Prefix",
+      modeSuffix: "Add Suffix",
+      modeReplace: "Find & Replace",
+      lblAddPrefix: "Prefix to add (at beginning):",
+      lblAddSuffix: "Suffix to add (at end):",
+      lblBeforeExtension: "Insert before file extension (e.g. .mp3, .jpg)",
+      lblFindString: "Find text:",
+      lblReplaceWith: "Replace with:",
+      lblPreview: "Preview:",
+      btnCancel: "Cancel",
+      btnApply: "Apply Changes",
+      modalHierarchyTitle: "Folder Hierarchy",
+      modalHierarchyDesc: "Click any folder to navigate directly there:",
+      btnClose: "Close",
+      metaModalTitle: "Details & Tags",
+      audioSectionTitle: "🎵 AUDIO METADATA (ID3)",
+      lblFileName: "File Name",
+      lblAudioArtist: "Artist / Performer",
+      lblAudioTitle: "Track Title",
+      lblAudioAlbum: "Album",
+      lblAudioYear: "Release Year",
+      lblAudioGenre: "Genre",
+      lblAudioTrack: "Track Number",
+      lblAudioComposer: "Composer",
+      lblFileAuthor: "Author / Owner",
+      lblFileDescription: "Description",
+      lblFileTags: "Tags (separated by comma)",
+      btnDownload: "Download File",
+      btnSave: "Save to Real File",
+      newFolderModalTitle: "Create New Folder",
+      lblFolderName: "Folder Name",
+      btnCreate: "Create Folder",
+      batchTagModalTitle: "Add Tag to Selected",
+      lblTagName: "Tag Name",
+      btnSetTag: "Set Tag",
+      emptyTrashTitle: "Trash is empty",
+      emptyFolderTitle: "This folder is empty",
+      emptyFolderDesc: "Create a new folder or open the top menu to import files or an entire folder.",
+      rootHome: "Home",
+      itemsLabel: "items",
+      confirmClearMemory: "Are you sure you want to clear the app memory? This resets the browser cache and app state. This will NOT delete or alter your real files.",
+      memoryClearedToast: "App memory cleared successfully!",
+      renameToast: "files renamed!",
+      shortcutsTitle: "Keyboard Shortcuts (Desktop)",
+      btnOpenInApp: "Open in Player / External App"
+    }
+  };
+
+  function t(key) {
+    return translations[currentLang][key] || key;
+  }
+
+  function changeLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('aura_lang', lang);
+    document.getElementById('langSelector').value = lang;
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.getAttribute('data-i18n');
+      if (translations[lang][k]) el.textContent = translations[lang][k];
+    });
+
+    document.getElementById('searchInput').placeholder = t('searchPlaceholder');
+    renderFiles();
+    showToast(lang === 'fi' ? 'Kieli vaihdettu: Suomi' : 'Language set to English');
+  }
+
+  function showLoader(title = 'Ladataan kansiota...', subtext = '0 tiedostoa luettu') {
+    document.getElementById('loadingTitle').textContent = title;
+    document.getElementById('loadingSubtext').textContent = subtext;
+    document.getElementById('loadingOverlay').classList.add('show');
+  }
+
+  function updateLoaderText(subtext) {
+    document.getElementById('loadingSubtext').textContent = subtext;
+  }
+
+  function hideLoader() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+
+  function injectId3Tags(existingBuffer, meta) {
+    const u8 = new Uint8Array(existingBuffer);
+    let audioStart = 0;
+    
+    if (u8[0] === 0x49 && u8[1] === 0x44 && u8[2] === 0x33) {
+      const size = (u8[6] << 21) | (u8[7] << 14) | (u8[8] << 7) | u8[9];
+      audioStart = 10 + size;
+    }
+
+    const frames = [];
+    function addFrame(id, text) {
+      if (!text) return;
+      const enc = new TextEncoder().encode(text);
+      const framePayload = new Uint8Array(1 + enc.length);
+      framePayload[0] = 3; // UTF-8
+      framePayload.set(enc, 1);
+
+      const frameLen = framePayload.length;
+      const header = new Uint8Array(10);
+      header[0] = id.charCodeAt(0);
+      header[1] = id.charCodeAt(1);
+      header[2] = id.charCodeAt(2);
+      header[3] = id.charCodeAt(3);
+      header[4] = (frameLen >> 24) & 0xff;
+      header[5] = (frameLen >> 16) & 0xff;
+      header[6] = (frameLen >> 8) & 0xff;
+      header[7] = frameLen & 0xff;
+      frames.push(header, framePayload);
+    }
+
+    if (meta.title) addFrame('TIT2', meta.title);
+    if (meta.artist) addFrame('TPE1', meta.artist);
+    if (meta.album) addFrame('TALB', meta.album);
+    if (meta.year) addFrame('TYER', meta.year);
+    if (meta.genre) addFrame('TCON', meta.genre);
+    if (meta.track) addFrame('TRCK', meta.track);
+    if (meta.composer) addFrame('TCOM', meta.composer);
+
+    const totalFramesLen = frames.reduce((acc, f) => acc + f.length, 0);
+    if (totalFramesLen === 0) return existingBuffer;
+
+    const id3Header = new Uint8Array(10);
+    id3Header[0] = 0x49; id3Header[1] = 0x44; id3Header[2] = 0x33;
+    id3Header[3] = 0x03; id3Header[4] = 0x00;
+    id3Header[5] = 0x00;
+    id3Header[6] = (totalFramesLen >> 21) & 0x7f;
+    id3Header[7] = (totalFramesLen >> 14) & 0x7f;
+    id3Header[8] = (totalFramesLen >> 7) & 0x7f;
+    id3Header[9] = totalFramesLen & 0x7f;
+
+    const rawAudio = u8.slice(audioStart);
+    const result = new Uint8Array(10 + totalFramesLen + rawAudio.length);
+    result.set(id3Header, 0);
+    let offset = 10;
+    for (const f of frames) {
+      result.set(f, offset);
+      offset += f.length;
+    }
+    result.set(rawAudio, offset);
+    return result.buffer;
+  }
+
+  let fileSystem = [];
+  let userTags = ['Tärkeä', 'Työ', 'Musiikki', 'Koodi', 'Arkisto'];
+
+  let currentFolderId = null;
+  let isTrashView = false;
+  let selectedIds = new Set();
+  let clipboard = null;
+  let currentView = 'grid';
+  let currentSort = 'name_asc';
+  let activeTypeFilter = 'all';
+  let activeTagFilter = null;
+  let searchQuery = '';
+
+  let renameMode = 'prefix';
+
+  const undoStack = [];
+  const redoStack = [];
+
+  const tagColors = {
+    'Tärkeä': '#ef4444',
+    'Työ': '#3b82f6',
+    'Musiikki': '#ec4899',
+    'Koodi': '#8b5cf6',
+    'Arkisto': '#f59e0b'
+  };
+
+  function showToast(msg) {
+    const c = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    c.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return '--';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  function getMimeType(fileName, type) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const mimeMap = {
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'flac': 'audio/flac',
+      'ogg': 'audio/ogg',
+      'm4a': 'audio/mp4',
+      'aac': 'audio/aac',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml',
+      'webp': 'image/webp',
+      'pdf': 'application/pdf',
+      'txt': 'text/plain',
+      'html': 'text/html',
+      'json': 'application/json'
+    };
+    return mimeMap[ext] || (type === 'audio' ? 'audio/mpeg' : 'application/octet-stream');
+  }
+
+  function detectFileType(fileName, mimeType = '') {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (mimeType.startsWith('audio/') || ['mp3', 'wav', 'flac', 'ogg', 'm4a', 'aac', 'wma'].includes(ext)) {
+      return 'audio';
+    }
+    if (mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) {
+      return 'image';
+    }
+    if (['js', 'ts', 'html', 'css', 'json', 'py', 'php', 'java', 'c', 'cpp'].includes(ext)) {
+      return 'code';
+    }
+    return 'document';
+  }
+
+  function getFileIcon(type) {
+    switch (type) {
+      case 'folder': return '📁';
+      case 'audio': return '🎵';
+      case 'image': return '🖼️';
+      case 'document': return '📄';
+      case 'code': return '💻';
+      default: return '📦';
+    }
+  }
+
+  /* ==========================================================
+     KORJATTU NIMEÄMINEN (TOIMII ANDROIDISSA & TYÖPÖYDÄLLÄ)
+  ========================================================== */
+  async function renameNativeFileSafely(item, newName) {
+    if (!item.nativeHandle) {
+      item.name = newName;
+      return;
+    }
+
+    let moveSucceeded = false;
+
+    if (item.nativeHandle.move) {
+      try {
+        await item.nativeHandle.move(newName);
+        moveSucceeded = true;
+      } catch (err) {
+        console.warn('Suora move() ei toimi Androidissa, käytetään varamenetelmää:', err);
+      }
+    }
+
+    if (!moveSucceeded) {
+      if (!item.parentDirHandle) {
+        throw new Error('Kansion viite puuttuu. Avaa kansio uudelleen valikosta.');
+      }
+
+      const oldFile = await item.nativeHandle.getFile();
+      const buffer = await oldFile.arrayBuffer();
+
+      const newHandle = await item.parentDirHandle.getFileHandle(newName, { create: true });
+      const writable = await newHandle.createWritable();
+      await writable.write(buffer);
+      await writable.close();
+
+      await item.parentDirHandle.removeEntry(item.name);
+
+      item.nativeHandle = newHandle;
+      item.nativeFile = await newHandle.getFile();
+    }
+
+    item.name = newName;
+  }
+
+  /* ==========================================================
+     TIEDOSTOJEN AVAUS (AUDIO, KUVAT, TEKSTI, MUUT)
+  ========================================================== */
+  async function openInExternalApp(id) {
+    const item = fileSystem.find(f => f.id === id);
+    if (!item) return;
+
+    if (item.type === 'folder') {
+      navigateToFolder(item.id);
+      return;
+    }
+
+    if (item.type === 'audio') {
+      playAudioInApp(item);
+      return;
+    }
+
+    if (item.type === 'image') {
+      openImageViewer(item);
+      return;
+    }
+
+    const textExtensions = ['txt', 'md', 'json', 'js', 'ts', 'html', 'css', 'csv', 'log', 'xml', 'py'];
+    const ext = item.name.split('.').pop().toLowerCase();
+    if (item.type === 'code' || textExtensions.includes(ext)) {
+      openTextEditor(item);
+      return;
+    }
+
+    let fileToOpen = item.realBlob || (item.nativeHandle ? await item.nativeHandle.getFile() : null);
+    if (!fileToOpen) {
+      const mime = getMimeType(item.name, item.type);
+      fileToOpen = new File(["Sisältö"], item.name, { type: mime });
+    }
+
+    const url = URL.createObjectURL(fileToOpen);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  function openCurrentFileInApp() {
+    const id = document.getElementById('metaFileId').value;
+    if (id) {
+      openInExternalApp(id);
+    }
+  }
+
+  /* KUVAKATSELIN */
+  async function openImageViewer(item) {
+    let file = item.realBlob || (item.nativeHandle ? await item.nativeHandle.getFile() : null);
+    if (!file) return showToast('Kuvan lataus epäonnistui');
+
+    const url = URL.createObjectURL(file);
+    document.getElementById('imageViewerImg').src = url;
+    document.getElementById('imageViewerTitle').textContent = item.name;
+    openModal('imageViewerModal');
+  }
+
+  /* TEKSTIEDITORI */
+  let currentEditingItem = null;
+
+  async function openTextEditor(item) {
+    let file = item.realBlob || (item.nativeHandle ? await item.nativeHandle.getFile() : null);
+    if (!file) return showToast('Tiedoston luku epäonnistui');
+
+    currentEditingItem = item;
+    const text = await file.text();
+    document.getElementById('textEditorArea').value = text;
+    document.getElementById('textEditorTitle').textContent = `Muokataan: ${item.name}`;
+    openModal('textEditorModal');
+  }
+
+  async function saveTextEditorContent() {
+    if (!currentEditingItem) return;
+    const newText = document.getElementById('textEditorArea').value;
+
+    if (currentEditingItem.nativeHandle && currentEditingItem.nativeHandle.createWritable) {
+      try {
+        const writable = await currentEditingItem.nativeHandle.createWritable();
+        await writable.write(newText);
+        await writable.close();
+        showToast('Muutokset tallennettu oikeaan tiedostoon levylle!');
+      } catch (err) {
+        showToast('Tallennus levylle epäonnistui: ' + err.message);
+      }
+    } else {
+      currentEditingItem.realBlob = new Blob([newText], { type: 'text/plain' });
+      showToast('Teksti tallennettu välimuistiin!');
+    }
+
+    closeModal('textEditorModal');
+    saveToStorage();
+  }
+
+  /* AUDIOPLAYER */
+  async function playAudioInApp(item) {
+    let file = item.realBlob || (item.nativeHandle ? await item.nativeHandle.getFile() : null);
+    if (!file) {
+      showToast('Äänitiedoston dataa ei löytynyt.');
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const player = document.getElementById('audioMiniPlayer');
+    const audioElement = document.getElementById('miniAudioElement');
+    const titleEl = document.getElementById('miniPlayerTitle');
+    const artistEl = document.getElementById('miniPlayerArtist');
+
+    titleEl.textContent = item.audioMeta?.title || item.name;
+    artistEl.textContent = item.audioMeta?.artist || (currentLang === 'fi' ? 'Tuntematon esittäjä' : 'Unknown Artist');
+
+    audioElement.src = url;
+    player.style.display = 'flex';
+    audioElement.play();
+
+    showToast(`Toistetaan: ${titleEl.textContent}`);
+  }
+
+  function closeMiniPlayer() {
+    const player = document.getElementById('audioMiniPlayer');
+    const audioElement = document.getElementById('miniAudioElement');
+    audioElement.pause();
+    player.style.display = 'none';
+  }
+
+  /* ==========================================================
+     AITOJEN TIEDOSTOJEN TUONTI & KIRJOITUS
+  ========================================================== */
+  async function openNativeDirectory() {
+    if ('showDirectoryPicker' in window) {
+      try {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        showLoader('Ladataan kansiota...', 'Luetaan tiedostoja levyltä...');
+
+        const topFolderId = 'native_dir_' + Date.now();
+        const topFolder = {
+          id: topFolderId,
+          parentId: currentFolderId,
+          name: dirHandle.name,
+          type: 'folder',
+          size: 0,
+          updated: new Date().toISOString().split('T')[0],
+          tags: ['Laitekansio'],
+          author: 'Laite',
+          trashed: false,
+          nativeHandle: dirHandle
+        };
+        fileSystem.push(topFolder);
+
+        let count = 0;
+        await scanNativeDirectoryRecursive(dirHandle, topFolderId, () => {
+          count++;
+          updateLoaderText(`${count} tiedostoa ja kansiota käsitelty...`);
+        });
+
+        saveToStorage();
+        hideLoader();
+        showToast(`Kansio "${dirHandle.name}" tuotu kirjoitusoikeuksin!`);
+        closeTopDrawer();
+        renderFiles();
+      } catch (err) {
+        hideLoader();
+        if (err.name !== 'AbortError') showToast('Kansiota ei voitu avata: ' + err.message);
+      }
+    } else {
+      alert('Käytä Chromea, Edgeä tai Opera-selainta.');
+    }
+  }
+
+  async function scanNativeDirectoryRecursive(dirHandle, parentId, onProgress) {
+    for await (const entry of dirHandle.values()) {
+      if (onProgress) onProgress();
+      const id = 'native_' + Math.random().toString(36).substring(2, 9);
+      if (entry.kind === 'directory') {
+        fileSystem.push({
+          id,
+          parentId,
+          name: entry.name,
+          type: 'folder',
+          size: 0,
+          updated: new Date().toISOString().split('T')[0],
+          tags: ['Kansio'],
+          author: 'Laite',
+          trashed: false,
+          nativeHandle: entry,
+          parentDirHandle: dirHandle
+        });
+        await scanNativeDirectoryRecursive(entry, id, onProgress);
+      } else {
+        const file = await entry.getFile();
+        const type = detectFileType(file.name, file.type);
+        fileSystem.push({
+          id,
+          parentId,
+          name: entry.name,
+          type,
+          size: file.size,
+          updated: new Date(file.lastModified).toISOString().split('T')[0],
+          tags: [type === 'audio' ? 'Musiikki' : 'Tiedosto'],
+          author: 'Laite',
+          trashed: false,
+          nativeHandle: entry,
+          parentDirHandle: dirHandle,
+          nativeFile: file,
+          audioMeta: type === 'audio' ? {
+            title: entry.name.replace(/\.[^/.]+$/, ""),
+            artist: '',
+            album: '',
+            year: '',
+            genre: '',
+            track: '',
+            composer: ''
+          } : null
+        });
+      }
+    }
+  }
+
+  function handleRealFolderImport(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    showLoader('Tuodaan kansiota...', `Käsitellään ${files.length} tiedostoa...`);
+
+    setTimeout(() => {
+      const folderCache = {};
+      files.forEach((file) => {
+        const pathParts = (file.webkitRelativePath || file.name).split('/');
+        let parent = currentFolderId;
+        let accumulatedPath = '';
+
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          const folderName = pathParts[i];
+          accumulatedPath += (accumulatedPath ? '/' : '') + folderName;
+
+          if (!folderCache[accumulatedPath]) {
+            const newFolderId = 'folder_' + Date.now() + Math.random().toString(36).substring(2, 6);
+            const newFolder = {
+              id: newFolderId,
+              parentId: parent,
+              name: folderName,
+              type: 'folder',
+              size: 0,
+              updated: new Date().toISOString().split('T')[0],
+              tags: ['Tuotu'],
+              author: 'Käyttäjä',
+              trashed: false
+            };
+            fileSystem.push(newFolder);
+            folderCache[accumulatedPath] = newFolderId;
+          }
+          parent = folderCache[accumulatedPath];
+        }
+
+        const type = detectFileType(file.name, file.type);
+        const newFile = {
+          id: 'imported_' + Date.now() + Math.random().toString(36).substring(2, 6),
+          parentId: parent,
+          name: file.name,
+          type,
+          size: file.size,
+          updated: new Date(file.lastModified || Date.now()).toISOString().split('T')[0],
+          tags: [type === 'audio' ? 'Musiikki' : 'Tuotu'],
+          author: 'Käyttäjä',
+          trashed: false,
+          realBlob: file,
+          audioMeta: type === 'audio' ? {
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            artist: '',
+            album: '',
+            year: '',
+            genre: '',
+            track: '',
+            composer: ''
+          } : null
+        };
+        fileSystem.push(newFile);
+      });
+
+      saveToStorage();
+      hideLoader();
+      const rootName = files[0].webkitRelativePath ? files[0].webkitRelativePath.split('/')[0] : 'Kansio';
+      showToast(`Kansio "${rootName}" tuotu onnistuneesti!`);
+      closeTopDrawer();
+      renderFiles();
+      e.target.value = '';
+    }, 50);
+  }
+
+  function handleRealFilesImport(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    files.forEach(file => {
+      const type = detectFileType(file.name, file.type);
+      fileSystem.push({
+        id: 'file_' + Date.now() + Math.random().toString(36).substring(2, 5),
+        parentId: currentFolderId,
+        name: file.name,
+        type,
+        size: file.size,
+        updated: new Date().toISOString().split('T')[0],
+        tags: [type === 'audio' ? 'Musiikki' : 'Tuotu'],
+        author: 'Käyttäjä',
+        trashed: false,
+        realBlob: file,
+        audioMeta: type === 'audio' ? {
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          artist: '',
+          album: '',
+          year: '',
+          genre: '',
+          track: '',
+          composer: ''
+        } : null
+      });
+    });
+
+    saveToStorage();
+    showToast(`Tuotu ${files.length} tiedostoa!`);
+    closeTopDrawer();
+    renderFiles();
+    e.target.value = '';
+  }
+
+  /* ==========================================================
+     METATIETOJEN TALLENNUS AITOON TIEDOSTOON
+  ========================================================== */
+  async function saveMetadata(e) {
+    e.preventDefault();
+    const id = document.getElementById('metaFileId').value;
+    const item = fileSystem.find(f => f.id === id);
+    if (!item) return;
+
+    const oldData = JSON.parse(JSON.stringify(item));
+    const newName = document.getElementById('metaName').value.trim();
+
+    if (newName !== item.name && item.nativeHandle) {
+      try {
+        showLoader('Nimetään tiedostoa...', 'Kirjoitetaan muutosta puhelimen muistiin...');
+        await renameNativeFileSafely(item, newName);
+        hideLoader();
+        showToast('Nimi muutettu onnistuneesti laitteen muistiin!');
+      } catch (err) {
+        hideLoader();
+        showToast('Nimen kirjoitus levylle epäonnistui: ' + err.message);
+        return;
+      }
+    }
+
+    const newTags = document.getElementById('metaTags').value.split(',').map(t => t.trim()).filter(Boolean);
+    newTags.forEach(t => {
+      if (!userTags.includes(t)) userTags.push(t);
+    });
+
+    item.name = newName;
+    item.author = document.getElementById('metaAuthor').value.trim();
+    item.description = document.getElementById('metaDescription').value.trim();
+    item.tags = newTags;
+
+    if (item.type === 'audio') {
+      item.audioMeta = {
+        artist: document.getElementById('audioArtist').value.trim(),
+        title: document.getElementById('audioTitle').value.trim(),
+        album: document.getElementById('audioAlbum').value.trim(),
+        year: document.getElementById('audioYear').value.trim(),
+        genre: document.getElementById('audioGenre').value.trim(),
+        track: document.getElementById('audioTrack').value.trim(),
+        composer: document.getElementById('audioComposer').value.trim()
+      };
+
+      if (item.nativeHandle && item.nativeHandle.createWritable) {
+        try {
+          const file = await item.nativeHandle.getFile();
+          const buf = await file.arrayBuffer();
+          const newBuf = injectId3Tags(buf, item.audioMeta);
+          const writable = await item.nativeHandle.createWritable();
+          await writable.write(newBuf);
+          await writable.close();
+          showToast('ID3-metatiedot tallennettu tiedostoon!');
+        } catch (err) {
+          showToast('ID3-kirjoitus levylle epäonnistui: ' + err.message);
+        }
+      } else if (item.realBlob) {
+        const buf = await item.realBlob.arrayBuffer();
+        const newBuf = injectId3Tags(buf, item.audioMeta);
+        item.realBlob = new Blob([newBuf], { type: 'audio/mpeg' });
+        showToast('Metadata päivitetty välimuistiin.');
+      }
+    }
+
+    pushAction({ type: 'EDIT_META', id, oldData, newData: JSON.parse(JSON.stringify(item)) });
+    saveToStorage();
+    closeModal('metaModal');
+    renderFiles();
+  }
+
+  /* ==========================================================
+     JOUKKONIMEÄMINEN
+  ========================================================== */
+  function openBatchRenameModal() {
+    if (selectedIds.size === 0) return;
+    setRenameMode('prefix');
+    document.getElementById('renamePrefixInput').value = '';
+    document.getElementById('renameSuffixInput').value = '';
+    document.getElementById('renameFindInput').value = '';
+    document.getElementById('renameReplaceInput').value = '';
+    updateRenamePreview();
+    openModal('batchRenameModal');
+  }
+
+  function setRenameMode(mode) {
+    renameMode = mode;
+    document.getElementById('modePillPrefix').classList.toggle('active', mode === 'prefix');
+    document.getElementById('modePillSuffix').classList.toggle('active', mode === 'suffix');
+    document.getElementById('modePillReplace').classList.toggle('active', mode === 'replace');
+
+    document.getElementById('renamePrefixSection').style.display = mode === 'prefix' ? 'block' : 'none';
+    document.getElementById('renameSuffixSection').style.display = mode === 'suffix' ? 'block' : 'none';
+    document.getElementById('renameReplaceSection').style.display = mode === 'replace' ? 'block' : 'none';
+
+    updateRenamePreview();
+  }
+
+  function calculateNewName(originalName) {
+    if (renameMode === 'prefix') {
+      const prefix = document.getElementById('renamePrefixInput').value;
+      return prefix ? `${prefix}${originalName}` : originalName;
+    } 
+    else if (renameMode === 'suffix') {
+      const suffix = document.getElementById('renameSuffixInput').value;
+      if (!suffix) return originalName;
+
+      const beforeExt = document.getElementById('renameBeforeExtCheck').checked;
+      const lastDot = originalName.lastIndexOf('.');
+      if (beforeExt && lastDot > 0) {
+        const base = originalName.substring(0, lastDot);
+        const ext = originalName.substring(lastDot);
+        return `${base}${suffix}${ext}`;
+      } else {
+        return `${originalName}${suffix}`;
+      }
+    } 
+    else if (renameMode === 'replace') {
+      const findText = document.getElementById('renameFindInput').value;
+      const replaceText = document.getElementById('renameReplaceInput').value || '';
+      if (!findText) return originalName;
+      return originalName.split(findText).join(replaceText);
+    }
+    return originalName;
+  }
+
+  function updateRenamePreview() {
+    const box = document.getElementById('renamePreviewBox');
+    const selectedItems = fileSystem.filter(f => selectedIds.has(f.id));
+
+    if (selectedItems.length === 0) {
+      box.innerHTML = `<span style="color:var(--text-muted);">Ei kohteita valittuna.</span>`;
+      return;
+    }
+
+    const previewList = selectedItems.slice(0, 5);
+    let html = previewList.map(item => {
+      const newName = calculateNewName(item.name);
+      return `
+        <div class="preview-item">
+          <span>${item.name}</span>
+          <span style="color:var(--text-muted);">➔</span>
+          <span class="preview-item-new">${newName}</span>
+        </div>
+      `;
+    }).join('');
+
+    if (selectedItems.length > 5) {
+      html += `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">... ja ${selectedItems.length - 5} muuta kohdetta</div>`;
+    }
+
+    box.innerHTML = html;
+  }
+
+  async function applyBatchRename() {
+    const selectedItems = fileSystem.filter(f => selectedIds.has(f.id));
+    if (selectedItems.length === 0) return;
+
+    showLoader('Nimetään tiedostoja...', 'Päivitetään tiedostoja puhelimen muistiin...');
+    const prevNames = [];
+    const newNames = [];
+
+    for (const item of selectedItems) {
+      const computed = calculateNewName(item.name);
+      if (computed && computed !== item.name) {
+        try {
+          await renameNativeFileSafely(item, computed);
+          prevNames.push({ id: item.id, name: item.name });
+          newNames.push({ id: item.id, name: computed });
+        } catch (e) {
+          console.warn('Tiedoston nimeäminen epäonnistui: ' + item.name, e);
+        }
+      }
+    }
+
+    hideLoader();
+    if (newNames.length > 0) {
+      pushAction({ type: 'BATCH_RENAME', prevNames, newNames });
+      saveToStorage();
+      renderFiles();
+      showToast(`${newNames.length} ${t('renameToast')}`);
+    }
+
+    closeModal('batchRenameModal');
+  }
+
+  /* ==========================================================
+     PIKANÄPPÄINKOMENNOT
+  ========================================================== */
+  window.addEventListener('keydown', e => {
+    const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+
+    if (e.key === 'Escape') {
+      const openModals = document.querySelectorAll('.modal-overlay.open');
+      if (openModals.length > 0) {
+        openModals.forEach(m => m.classList.remove('open'));
+      } else {
+        clearSelection();
+      }
+      return;
+    }
+
+    if (isTyping) return;
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      document.getElementById('searchInput').focus();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      const currentItems = getFilteredFiles();
+      currentItems.forEach(i => selectedIds.add(i.id));
+      renderFiles();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      copySelected(false);
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+      e.preventDefault();
+      copySelected(true);
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+      e.preventDefault();
+      pasteClipboard();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      openNewFolderModal();
+      return;
+    }
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (selectedIds.size > 0 && !isTrashView) {
+        e.preventDefault();
+        trashSelected();
+      }
+      return;
+    }
+
+    if (e.key === 'F2') {
+      e.preventDefault();
+      if (selectedIds.size === 1) {
+        const id = Array.from(selectedIds)[0];
+        openMetaModal(id);
+      } else if (selectedIds.size > 1) {
+        openBatchRenameModal();
+      }
+      return;
+    }
+
+    if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') || (e.altKey && e.key === 'Enter')) {
+      e.preventDefault();
+      if (selectedIds.size > 0) {
+        const id = Array.from(selectedIds)[0];
+        openMetaModal(id);
+      }
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      if (selectedIds.size > 0) openBatchTagModal();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
+      e.preventDefault();
+      if (selectedIds.size > 0) moveToNewFolderPrompt();
+      return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      redo();
+    }
+  });
+
+  /* ==========================================================
+     PERUSTOIMINNOT JA RENDERÖINTI
+  ========================================================== */
+  function pasteClipboard() {
+    if (!clipboard || !clipboard.ids.length) return;
+
+    if (clipboard.action === 'cut') {
+      const moves = [];
+      clipboard.ids.forEach(id => {
+        const item = fileSystem.find(f => f.id === id);
+        if (item) {
+          moves.push({ id: item.id, prevParent: item.parentId, newParent: currentFolderId });
+          item.parentId = currentFolderId;
+        }
+      });
+      pushAction({ type: 'MOVE', moves });
+      showToast(`${clipboard.ids.length} kohdetta siirretty`);
+      clipboard = null;
+    } else {
+      clipboard.ids.forEach(id => {
+        const orig = fileSystem.find(f => f.id === id);
+        if (orig) {
+          const clone = JSON.parse(JSON.stringify(orig));
+          clone.id = 'clone_' + Date.now() + Math.random().toString(36).substring(2, 6);
+          clone.name = clone.name.replace(/(\.[^/.]+)$/, " (kopio)$1");
+          clone.parentId = currentFolderId;
+          fileSystem.push(clone);
+        }
+      });
+      showToast(`${clipboard.ids.length} kohdetta kopioitu`);
+    }
+
+    saveToStorage();
+    renderFiles();
+  }
+
+  function downloadFile() {
+    const id = document.getElementById('metaFileId').value;
+    const item = fileSystem.find(f => f.id === id);
+    if (!item) return;
+
+    let blob = item.realBlob || item.nativeFile;
+    if (!blob) {
+      blob = new Blob([`Tiedoston ${item.name} sisältö`], { type: 'text/plain' });
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.name;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Ladataan "${item.name}"...`);
+  }
+
+  function openMetaModal(id) {
+    const item = fileSystem.find(f => f.id === id);
+    if (!item) return;
+
+    document.getElementById('metaFileId').value = item.id;
+    document.getElementById('metaName').value = item.name;
+    document.getElementById('metaAuthor').value = item.author || '';
+    document.getElementById('metaDescription').value = item.description || '';
+    document.getElementById('metaTags').value = (item.tags || []).join(', ');
+
+    const audioSec = document.getElementById('audioMetaSection');
+    const modalTitle = document.getElementById('metaModalHeaderTitle');
+
+    if (item.type === 'audio') {
+      audioSec.style.display = 'block';
+      modalTitle.innerHTML = '<span>🎵 ID3 Audio Metadata</span>';
+      
+      const am = item.audioMeta || {};
+      document.getElementById('audioArtist').value = am.artist || '';
+      document.getElementById('audioTitle').value = am.title || item.name.replace(/\.[^/.]+$/, "");
+      document.getElementById('audioAlbum').value = am.album || '';
+      document.getElementById('audioYear').value = am.year || '';
+      document.getElementById('audioGenre').value = am.genre || '';
+      document.getElementById('audioTrack').value = am.track || '';
+      document.getElementById('audioComposer').value = am.composer || '';
+    } else {
+      audioSec.style.display = 'none';
+      modalTitle.textContent = t('metaModalTitle');
+    }
+
+    openModal('metaModal');
+  }
+
+  function clearAppMemory() {
+    if (!confirm(t('confirmClearMemory'))) return;
+
+    localStorage.removeItem('aura_files_backup');
+    fileSystem = [];
+    selectedIds.clear();
+    clipboard = null;
+    undoStack.length = 0;
+    redoStack.length = 0;
+    currentFolderId = null;
+    activeTagFilter = null;
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+
+    updateUndoRedoButtons();
+    closeTopDrawer();
+    renderFiles();
+    showToast(t('memoryClearedToast'));
+  }
+
+  function toggleTopDrawer() {
+    const p = document.getElementById('topPanel');
+    const o = document.getElementById('topPanelOverlay');
+    const isOpen = p.classList.contains('open');
+    if (isOpen) closeTopDrawer();
+    else {
+      p.classList.add('open');
+      o.classList.add('open');
+    }
+  }
+
+  function closeTopDrawer() {
+    document.getElementById('topPanel').classList.remove('open');
+    document.getElementById('topPanelOverlay').classList.remove('open');
+  }
+
+  function openHierarchyModal() {
+    renderFolderTree();
+    openModal('hierarchyModal');
+  }
+
+  function renderFolderTree() {
+    const container = document.getElementById('treeViewContainer');
+    let html = '';
+
+    const rootCount = fileSystem.filter(f => f.parentId === null && !f.trashed).length;
+    html += `
+      <div class="tree-node ${currentFolderId === null ? 'active' : ''}" onclick="selectTreeFolder(null)">
+        <span>🏠</span>
+        <span>${t('rootHome')}</span>
+        <span class="tree-count">${rootCount} ${t('itemsLabel')}</span>
+      </div>
+    `;
+
+    function renderBranch(parentId, depth) {
+      const folders = fileSystem.filter(f => f.parentId === parentId && f.type === 'folder' && !f.trashed);
+      folders.forEach(folder => {
+        const childCount = fileSystem.filter(f => f.parentId === folder.id && !f.trashed).length;
+        const indent = depth * 22;
+        const isCurrent = currentFolderId === folder.id;
+        html += `
+          <div class="tree-node ${isCurrent ? 'active' : ''}" style="padding-left: ${indent + 12}px;" onclick="selectTreeFolder('${folder.id}')">
+            <span>📁</span>
+            <span>${folder.name}</span>
+            <span class="tree-count">${childCount} ${t('itemsLabel')}</span>
+          </div>
+        `;
+        renderBranch(folder.id, depth + 1);
+      });
+    }
+
+    renderBranch(null, 1);
+    container.innerHTML = html;
+  }
+
+  function selectTreeFolder(id) {
+    navigateToFolder(id);
+    closeModal('hierarchyModal');
+  }
+
+  function handleSearch(val) {
+    searchQuery = val.trim();
+    document.getElementById('searchClearBtn').style.display = searchQuery ? 'block' : 'none';
+    renderFiles();
+  }
+
+  function clearSearch() {
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClearBtn').style.display = 'none';
+    renderFiles();
+  }
+
+  function getFilteredFiles() {
+    return fileSystem.filter(item => {
+      if (isTrashView) return item.trashed === true;
+      if (item.trashed) return false;
+
+      const matchesFolder = searchQuery || activeTagFilter ? true : item.parentId === currentFolderId;
+      if (!matchesFolder) return false;
+
+      if (activeTypeFilter !== 'all' && item.type !== activeTypeFilter) return false;
+      if (activeTagFilter && (!item.tags || !item.tags.includes(activeTagFilter))) return false;
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchName = item.name.toLowerCase().includes(q);
+        const matchAuthor = item.author && item.author.toLowerCase().includes(q);
+        const matchTags = item.tags && item.tags.some(t => t.toLowerCase().includes(q));
+
+        let matchAudio = false;
+        if (item.audioMeta) {
+          matchAudio = (item.audioMeta.artist && item.audioMeta.artist.toLowerCase().includes(q)) ||
+                       (item.audioMeta.album && item.audioMeta.album.toLowerCase().includes(q)) ||
+                       (item.audioMeta.genre && item.audioMeta.genre.toLowerCase().includes(q)) ||
+                       (item.audioMeta.title && item.audioMeta.title.toLowerCase().includes(q));
+        }
+
+        if (!matchName && !matchAuthor && !matchTags && !matchAudio) return false;
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (a.type === 'folder' && b.type !== 'folder') return -1;
+      if (a.type !== 'folder' && b.type === 'folder') return 1;
+
+      if (currentSort === 'name_asc') return a.name.localeCompare(b.name);
+      if (currentSort === 'name_desc') return b.name.localeCompare(a.name);
+      if (currentSort === 'date_desc') return new Date(b.updated) - new Date(a.updated);
+      if (currentSort === 'date_asc') return new Date(a.updated) - new Date(b.updated);
+      if (currentSort === 'size_desc') return (b.size || 0) - (a.size || 0);
+      return 0;
+    });
+  }
+
+  function renderFiles() {
+    renderBreadcrumbs();
+    renderTagCloud();
+
+    const trashCount = fileSystem.filter(f => f.trashed).length;
+    const trashBadge = document.getElementById('trashBadge');
+    if (trashCount > 0) {
+      trashBadge.style.display = 'inline-block';
+      trashBadge.textContent = trashCount;
+    } else {
+      trashBadge.style.display = 'none';
+    }
+
+    const container = document.getElementById('fileContainer');
+    const items = getFilteredFiles();
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <div style="font-size: 2.8rem; margin-bottom: 8px;">${isTrashView ? '🗑️' : '📂'}</div>
+          <p style="font-size: 1.1rem; font-weight: 700; color:var(--text);">${isTrashView ? t('emptyTrashTitle') : t('emptyFolderTitle')}</p>
+          <p style="font-size: 0.85rem; margin-top: 4px;">${t('emptyFolderDesc')}</p>
+        </div>
+      `;
+      updateBatchBar();
+      return;
+    }
+
+    if (currentView === 'grid') {
+      container.className = 'file-grid';
+      container.innerHTML = items.map(item => {
+        const isSelected = selectedIds.has(item.id);
+        const isCut = clipboard && clipboard.action === 'cut' && clipboard.ids.includes(item.id);
+        
+        let subtext = '';
+        if (item.type === 'audio' && item.audioMeta && item.audioMeta.artist) {
+          subtext = `🎤 ${item.audioMeta.artist}`;
+        } else if (item.author) {
+          subtext = `👤 ${item.author}`;
+        }
+
+        return `
+          <div class="file-card ${isSelected ? 'selected' : ''} ${isCut ? 'cut-item' : ''}" 
+               onclick="handleItemClick(event, '${item.id}')" 
+               ondblclick="handleItemDblClick('${item.id}')">
+            <div class="file-card-top">
+              <div class="file-icon">${getFileIcon(item.type)}</div>
+              <div class="file-checkbox" onclick="toggleSelect(event, '${item.id}')">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+            </div>
+            <div>
+              <div class="file-name" title="${item.name}">${item.name}</div>
+              ${subtext ? `<div class="file-subtext">${subtext}</div>` : ''}
+              <div class="file-meta">
+                <span>${item.type === 'folder' ? (currentLang === 'fi' ? 'Kansio' : 'Folder') : formatBytes(item.size)}</span>
+                <span>${item.updated}</span>
+              </div>
+              <div class="file-tags">
+                ${(item.tags || []).map(t => `<span class="badge">${t}</span>`).join('')}
+              </div>
+            </div>
+            <div style="margin-top: 8px; display:flex; justify-content:flex-end; gap:6px;">
+              <button class="btn btn-icon" style="padding:0; width:30px; height:30px;" onclick="event.stopPropagation(); openInExternalApp('${item.id}')" title="Avaa">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </button>
+              <button class="btn btn-icon" style="padding:0; width:30px; height:30px;" onclick="event.stopPropagation(); openMetaModal('${item.id}')" title="Muokkaa tietoja">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      container.className = 'file-list';
+      container.innerHTML = items.map(item => {
+        const isSelected = selectedIds.has(item.id);
+        const artist = item.type === 'audio' && item.audioMeta?.artist ? ` (${item.audioMeta.artist})` : '';
+        return `
+          <div class="file-row ${isSelected ? 'selected' : ''}" 
+               onclick="handleItemClick(event, '${item.id}')" 
+               ondblclick="handleItemDblClick('${item.id}')">
+            <div class="file-checkbox" onclick="toggleSelect(event, '${item.id}')">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="file-row-name">
+              <span style="font-size:1.3rem;">${getFileIcon(item.type)}</span>
+              <span title="${item.name}">${item.name}${artist}</span>
+            </div>
+            <div class="file-row-meta">${item.updated}</div>
+            <div class="file-row-meta">${formatBytes(item.size)}</div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-icon" style="width:30px; height:30px;" onclick="event.stopPropagation(); openInExternalApp('${item.id}')" title="Avaa">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </button>
+              <button class="btn btn-icon" style="width:30px; height:30px;" onclick="event.stopPropagation(); openMetaModal('${item.id}')">
+                <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    updateBatchBar();
+  }
+
+  function handleItemClick(e, id) {
+    if (e.target.closest('.file-checkbox') || e.target.closest('.btn')) return;
+    const item = fileSystem.find(i => i.id === id);
+    if (window.innerWidth <= 768 && item && item.type === 'folder' && !isTrashView) {
+      navigateToFolder(id);
+      return;
+    }
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    renderFiles();
+  }
+
+  function handleItemDblClick(id) {
+    if (isTrashView) return;
+    const item = fileSystem.find(i => i.id === id);
+    if (item && item.type === 'folder') {
+      navigateToFolder(item.id);
+    } else {
+      openInExternalApp(id);
+    }
+  }
+
+  function toggleSelect(e, id) {
+    e.stopPropagation();
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    renderFiles();
+  }
+
+  function clearSelection() {
+    selectedIds.clear();
+    renderFiles();
+  }
+
+  function updateBatchBar() {
+    const bar = document.getElementById('batchBar');
+    const count = document.getElementById('batchCount');
+    if (selectedIds.size > 0) {
+      count.textContent = `${selectedIds.size} ${currentLang === 'fi' ? 'valittu' : 'selected'}`;
+      bar.classList.add('show');
+    } else {
+      bar.classList.remove('show');
+    }
+  }
+
+  function navigateToFolder(id) {
+    currentFolderId = id === 'null' || !id ? null : id;
+    selectedIds.clear();
+    renderFiles();
+  }
+
+  function handleSortChange(val) {
+    currentSort = val;
+    saveToStorage();
+    renderFiles();
+  }
+
+  function setTypeFilter(type, el) {
+    activeTypeFilter = type;
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    renderFiles();
+  }
+
+  function filterByTag(tag) {
+    activeTagFilter = tag;
+    closeTopDrawer();
+    renderFiles();
+  }
+
+  function setViewMode(mode) {
+    currentView = mode;
+    document.getElementById('viewGridBtn').classList.toggle('active', mode === 'grid');
+    document.getElementById('viewListBtn').classList.toggle('active', mode === 'list');
+    saveToStorage();
+    renderFiles();
+  }
+
+  function renderBreadcrumbs() {
+    const container = document.getElementById('breadcrumbs');
+    if (isTrashView) {
+      container.innerHTML = `<span class="breadcrumb-item active">🗑️ ${t('navTrash')}</span>`;
+      return;
+    }
+
+    let crumbs = [{ id: null, name: t('rootHome') }];
+    let curr = currentFolderId;
+    let path = [];
+    while (curr) {
+      const folder = fileSystem.find(f => f.id === curr);
+      if (folder) {
+        path.unshift(folder);
+        curr = folder.parentId;
+      } else break;
+    }
+    crumbs = crumbs.concat(path);
+
+    container.innerHTML = crumbs.map((crumb, idx) => `
+      <span class="breadcrumb-item ${idx === crumbs.length - 1 ? 'active' : ''}" onclick="navigateToFolder('${crumb.id}')">
+        ${crumb.name}
+      </span>
+      ${idx < crumbs.length - 1 ? `<span style="color:var(--text-muted);">/</span>` : ''}
+    `).join('');
+  }
+
+  function copySelected(isCut = false) {
+    if (selectedIds.size === 0) return;
+    clipboard = {
+      action: isCut ? 'cut' : 'copy',
+      ids: Array.from(selectedIds)
+    };
+    showToast(`${selectedIds.size} ${isCut ? 'leikattu' : 'kopioitu'}`);
+    renderFiles();
+  }
+
+  async function moveToNewFolderPrompt() {
+    if (selectedIds.size === 0) return;
+    const folderName = prompt(currentLang === 'fi' ? 'Anna uudelle kohdekansiolle nimi:' : 'Enter new folder name:', 'Uusi kansio');
+    if (!folderName || !folderName.trim()) return;
+
+    let parentNativeHandle = null;
+    const currFolder = fileSystem.find(f => f.id === currentFolderId);
+    if (currFolder && currFolder.nativeHandle) {
+      parentNativeHandle = currFolder.nativeHandle;
+    }
+
+    let newNativeFolderHandle = null;
+    if (parentNativeHandle && parentNativeHandle.getDirectoryHandle) {
+      try {
+        newNativeFolderHandle = await parentNativeHandle.getDirectoryHandle(folderName.trim(), { create: true });
+      } catch (err) {
+        console.warn('Native dir create failed:', err);
+      }
+    }
+
+    const newFolderId = 'f_' + Date.now();
+    const newFolder = {
+      id: newFolderId,
+      parentId: currentFolderId,
+      name: folderName.trim(),
+      type: 'folder',
+      size: 0,
+      updated: new Date().toISOString().split('T')[0],
+      tags: [],
+      author: 'User',
+      trashed: false,
+      nativeHandle: newNativeFolderHandle,
+      parentDirHandle: parentNativeHandle
+    };
+    fileSystem.push(newFolder);
+
+    const moves = [];
+    selectedIds.forEach(id => {
+      const item = fileSystem.find(f => f.id === id);
+      if (item && item.id !== newFolderId) {
+        moves.push({ id: item.id, prevParent: item.parentId, newParent: newFolderId });
+        item.parentId = newFolderId;
+      }
+    });
+
+    pushAction({ type: 'MOVE', moves });
+    selectedIds.clear();
+    showToast(currentLang === 'fi' ? 'Kansio luotu ja tiedostot siirretty!' : 'Folder created and files moved!');
+    renderFiles();
+  }
+
+  async function createNewFolder(e) {
+    e.preventDefault();
+    const name = document.getElementById('newFolderName').value.trim();
+    if (!name) return;
+
+    let parentNativeHandle = null;
+    const currFolder = fileSystem.find(f => f.id === currentFolderId);
+    if (currFolder && currFolder.nativeHandle) {
+      parentNativeHandle = currFolder.nativeHandle;
+    }
+
+    let newNativeFolderHandle = null;
+    if (parentNativeHandle && parentNativeHandle.getDirectoryHandle) {
+      try {
+        newNativeFolderHandle = await parentNativeHandle.getDirectoryHandle(name, { create: true });
+        showToast('Kansio luotu myös kovalevylle!');
+      } catch (err) {
+        console.warn('Native folder creation failed:', err);
+      }
+    }
+
+    const newFolder = {
+      id: 'f_' + Date.now(),
+      parentId: currentFolderId,
+      name,
+      type: 'folder',
+      size: 0,
+      updated: new Date().toISOString().split('T')[0],
+      tags: [],
+      author: 'User',
+      trashed: false,
+      nativeHandle: newNativeFolderHandle,
+      parentDirHandle: parentNativeHandle
+    };
+    fileSystem.push(newFolder);
+    pushAction({ type: 'CREATE_FOLDER', folder: newFolder });
+
+    closeModal('newFolderModal');
+    showToast(`Kansio "${name}" luotu`);
+    renderFiles();
+  }
+
+  function setSpecialView(view) {
+    isTrashView = view === 'trash';
+    document.getElementById('navAll').classList.toggle('active', !isTrashView);
+    document.getElementById('navTrash').classList.toggle('active', isTrashView);
+    document.getElementById('emptyTrashBtn').style.display = isTrashView ? 'inline-flex' : 'none';
+    document.getElementById('filterPillsRow').style.display = isTrashView ? 'none' : 'flex';
+    document.getElementById('normalBatchButtons').style.display = isTrashView ? 'none' : 'flex';
+    document.getElementById('trashBatchButtons').style.display = isTrashView ? 'flex' : 'none';
+
+    selectedIds.clear();
+    closeTopDrawer();
+    renderFiles();
+  }
+
+  function trashSelected() {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    ids.forEach(id => {
+      const item = fileSystem.find(f => f.id === id);
+      if (item) item.trashed = true;
+    });
+
+    pushAction({ type: 'TRASH', items: ids });
+    showToast(`${ids.length} siirretty roskakoriin`);
+    selectedIds.clear();
+    renderFiles();
+  }
+
+  function restoreSelected() {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    ids.forEach(id => {
+      const item = fileSystem.find(f => f.id === id);
+      if (item) item.trashed = false;
+    });
+
+    pushAction({ type: 'RESTORE', items: ids });
+    showToast(`${ids.length} palautettu`);
+    selectedIds.clear();
+    renderFiles();
+  }
+
+  async function deletePermanentlySelected() {
+    if (!confirm(currentLang === 'fi' ? 'Haluatko poistaa valitut kohteet pysyvästi? Jos kohteet ovat kovalevyllä, ne poistuvat myös sieltä.' : 'Delete selected items permanently? Real files on disk will also be deleted.')) return;
+
+    for (const id of selectedIds) {
+      const item = fileSystem.find(f => f.id === id);
+      if (item && item.parentDirHandle) {
+        try {
+          await item.parentDirHandle.removeEntry(item.name, { recursive: item.type === 'folder' });
+        } catch (e) {
+          console.warn('Native removeEntry failed:', e);
+        }
+      }
+    }
+
+    fileSystem = fileSystem.filter(item => !selectedIds.has(item.id));
+    selectedIds.clear();
+    saveToStorage();
+    showToast(currentLang === 'fi' ? 'Poistettu pysyvästi' : 'Deleted permanently');
+    renderFiles();
+  }
+
+  function emptyTrash() {
+    if (!confirm(currentLang === 'fi' ? 'Tyhjennetäänkö roskakori pysyvästi?' : 'Empty trash permanently?')) return;
+    fileSystem = fileSystem.filter(f => !f.trashed);
+    saveToStorage();
+    showToast(currentLang === 'fi' ? 'Roskakori tyhjennetty' : 'Trash emptied');
+    renderFiles();
+  }
+
+  function changeTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    document.getElementById('themeSelector').value = themeName;
+    saveToStorage();
+  }
+
+  function promptNewTag() {
+    const tName = prompt(currentLang === 'fi' ? 'Anna uuden tägin nimi:' : 'Enter new tag name:');
+    if (!tName || !tName.trim()) return;
+    const clean = tName.trim();
+    if (!userTags.includes(clean)) {
+      userTags.push(clean);
+      saveToStorage();
+      renderTagCloud();
+      showToast(`Tägi "${clean}" luotu`);
+    }
+  }
+
+  function renderTagCloud() {
+    const cloud = document.getElementById('tagCloud');
+    let html = `<div class="tag-chip ${activeTagFilter === null ? 'active' : ''}" onclick="filterByTag(null)">${t('filterAll')}</div>`;
+    userTags.forEach(tag => {
+      const color = tagColors[tag] || 'var(--primary)';
+      const isActive = activeTagFilter === tag;
+      html += `
+        <div class="tag-chip ${isActive ? 'active' : ''}" 
+             style="color:${color};" 
+             onclick="filterByTag('${tag}')">
+          ${tag}
+        </div>
+      `;
+    });
+    cloud.innerHTML = html;
+  }
+
+  function pushAction(action) {
+    undoStack.push(action);
+    redoStack.length = 0;
+    updateUndoRedoButtons();
+    saveToStorage();
+  }
+
+  function updateUndoRedoButtons() {
+    document.getElementById('undoBtn').disabled = undoStack.length === 0;
+    document.getElementById('redoBtn').disabled = redoStack.length === 0;
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    const action = undoStack.pop();
+    redoStack.push(action);
+
+    switch(action.type) {
+      case 'TRASH':
+        action.items.forEach(id => {
+          const item = fileSystem.find(f => f.id === id);
+          if (item) item.trashed = false;
+        });
+        break;
+      case 'RESTORE':
+        action.items.forEach(id => {
+          const item = fileSystem.find(f => f.id === id);
+          if (item) item.trashed = true;
+        });
+        break;
+      case 'MOVE':
+        action.moves.forEach(m => {
+          const item = fileSystem.find(f => f.id === m.id);
+          if (item) item.parentId = m.prevParent;
+        });
+        break;
+      case 'CREATE_FOLDER':
+        fileSystem = fileSystem.filter(f => f.id !== action.folder.id);
+        break;
+      case 'EDIT_META':
+        const item = fileSystem.find(f => f.id === action.id);
+        if (item) Object.assign(item, action.oldData);
+        break;
+      case 'BATCH_RENAME':
+        action.prevNames.forEach(pn => {
+          const it = fileSystem.find(f => f.id === pn.id);
+          if (it) it.name = pn.name;
+        });
+        break;
+    }
+    updateUndoRedoButtons();
+    saveToStorage();
+    renderFiles();
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    const action = redoStack.pop();
+    undoStack.push(action);
+
+    switch(action.type) {
+      case 'TRASH':
+        action.items.forEach(id => {
+          const item = fileSystem.find(f => f.id === id);
+          if (item) item.trashed = true;
+        });
+        break;
+      case 'RESTORE':
+        action.items.forEach(id => {
+          const item = fileSystem.find(f => f.id === id);
+          if (item) item.trashed = false;
+        });
+        break;
+      case 'MOVE':
+        action.moves.forEach(m => {
+          const item = fileSystem.find(f => f.id === m.id);
+          if (item) item.parentId = m.newParent;
+        });
+        break;
+      case 'CREATE_FOLDER':
+        fileSystem.push(action.folder);
+        break;
+      case 'EDIT_META':
+        const it = fileSystem.find(f => f.id === action.id);
+        if (it) Object.assign(it, action.newData);
+        break;
+      case 'BATCH_RENAME':
+        action.newNames.forEach(nn => {
+          const it = fileSystem.find(f => f.id === nn.id);
+          if (it) it.name = nn.name;
+        });
+        break;
+    }
+    updateUndoRedoButtons();
+    saveToStorage();
+    renderFiles();
+  }
+
+  function saveToStorage() {
+    const exportableFiles = fileSystem.map(item => {
+      const copy = { ...item };
+      delete copy.nativeHandle;
+      delete copy.parentDirHandle;
+      delete copy.nativeFile;
+      delete copy.realBlob;
+      return copy;
+    });
+
+    const data = {
+      fileSystem: exportableFiles,
+      userTags,
+      theme: document.documentElement.getAttribute('data-theme') || 'midnight',
+      viewMode: currentView,
+      sort: currentSort,
+      lang: currentLang
+    };
+    localStorage.setItem('aura_files_backup', JSON.stringify(data));
+  }
+
+  function loadFromStorage() {
+    try {
+      const savedLang = localStorage.getItem('aura_lang');
+      if (savedLang) currentLang = savedLang;
+
+      const saved = localStorage.getItem('aura_files_backup');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (Array.isArray(data.fileSystem)) fileSystem = data.fileSystem;
+        if (Array.isArray(data.userTags)) userTags = data.userTags;
+        if (data.theme) changeTheme(data.theme);
+        if (data.viewMode) currentView = data.viewMode;
+        if (data.sort) currentSort = data.sort;
+        if (data.lang) currentLang = data.lang;
+      }
+    } catch (e) {
+      console.warn('Virhe välimuistin luvussa', e);
+    }
+  }
+
+  function exportSettingsAsJs() {
+    const exportableFiles = fileSystem.map(item => {
+      const copy = { ...item };
+      delete copy.nativeHandle;
+      delete copy.parentDirHandle;
+      delete copy.nativeFile;
+      delete copy.realBlob;
+      return copy;
+    });
+
+    const exportData = {
+      fileSystem: exportableFiles,
+      userTags,
+      theme: document.documentElement.getAttribute('data-theme') || 'midnight',
+      viewMode: currentView,
+      sort: currentSort,
+      lang: currentLang,
+      timestamp: new Date().toISOString()
+    };
+
+    const jsContent = `/**
+ *  File Manager - Backup and Settings
+ */
+window.AURA_CONFIG = ${JSON.stringify(exportData, null, 2)};
+`;
+
+    const blob = new Blob([jsContent], { type: 'application/javascript;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `file_manager_settings_${new Date().toISOString().slice(0,10)}.js`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Asetukset ladattu .js-tiedostona!');
+    closeTopDrawer();
+  }
+
+  function importSettingsFromJs(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const content = evt.target.result;
+        const match = content.match(/window\.AURA_CONFIG\s*=\s*(\{[\s\S]*\});?/);
+        let parsed = match && match[1] ? JSON.parse(match[1]) : JSON.parse(content);
+
+        if (parsed) {
+          if (Array.isArray(parsed.fileSystem)) fileSystem = parsed.fileSystem;
+          if (Array.isArray(parsed.userTags)) userTags = parsed.userTags;
+          if (parsed.theme) changeTheme(parsed.theme);
+          if (parsed.viewMode) setViewMode(parsed.viewMode);
+          if (parsed.sort) currentSort = parsed.sort;
+          if (parsed.lang) changeLanguage(parsed.lang);
+
+          saveToStorage();
+          renderFiles();
+          showToast('Asetukset ja tiedot tuotu!');
+          closeTopDrawer();
+        }
+      } catch (err) {
+        alert('Tiedoston lukeminen epäonnistui.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  function openBatchTagModal() {
+    document.getElementById('batchTagInput').value = '';
+    openModal('batchTagModal');
+  }
+
+  function applyBatchTag() {
+    const val = document.getElementById('batchTagInput').value.trim();
+    if (!val) return;
+
+    if (!userTags.includes(val)) userTags.push(val);
+
+    selectedIds.forEach(id => {
+      const item = fileSystem.find(f => f.id === id);
+      if (item) {
+        if (!item.tags) item.tags = [];
+        if (!item.tags.includes(val)) item.tags.push(val);
+      }
+    });
+
+    saveToStorage();
+    closeModal('batchTagModal');
+    showToast(`Tägi "${val}" asetettu`);
+    renderFiles();
+  }
+
+  function openNewFolderModal() {
+    document.getElementById('newFolderName').value = '';
+    openModal('newFolderModal');
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  loadFromStorage();
+  changeLanguage(currentLang);
+  setViewMode(currentView);
+  renderFiles();
+</script>
+</body>
+</html>
